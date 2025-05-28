@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Dimensiones de la red
 entrada_dim = 25 
@@ -89,10 +90,17 @@ def entrenar(entradas, etiquetas, tasa_aprendizaje=0.1, epocas=10):
             sesgo_salida -= tasa_aprendizaje * error_salida
             sesgo_oculta -= tasa_aprendizaje * error_oculta
 
-# Prueba y evaluación
-def probar_y_adivinar(num_pruebas=20): 
+# Diccionario para mostrar nombres
+nombres_figuras = {0: "Círculo", 1: "Cuadrado", 2: "Triángulo"}
+
+# Prueba y muestra de resultados en una ventana con 10 imágenes en blanco y negro puro
+#Aquí se modifica para la cantidad de pruebas
+def probar_y_mostrar(num_pruebas=10): 
+    fig, axs = plt.subplots(2, 5, figsize=(15, 6))
+    axs = axs.flatten()
     aciertos = 0
-    for _ in range(num_pruebas):
+
+    for idx in range(num_pruebas):
         categoria = np.random.choice([0, 1, 2])
         if categoria == 0:
             patron = generar_circulo()
@@ -107,16 +115,23 @@ def probar_y_adivinar(num_pruebas=20):
         salida = paso_hacia_adelante(patron)
         prediccion = np.argmax(salida)
 
-        print("\nPatrón generado (matriz 5x5):")
-        print(np.round(patron.reshape(5,5), 2))
-        print(f"Predicción: {'Círculo' if prediccion == 0 else 'Cuadrado' if prediccion == 1 else 'Triángulo'}")
-        print(f"Etiqueta real: {'Círculo' if etiqueta_real == 0 else 'Cuadrado' if etiqueta_real == 1 else 'Triángulo'}")
-
         if prediccion == etiqueta_real:
             aciertos += 1
 
+        # Binarizar la imagen: todo pixel > 0.5 será blanco (1), resto negro (0)
+        patron_binario = (patron.reshape(5, 5) > 0.5).astype(int)
+
+        axs[idx].imshow(patron_binario, cmap='gray', vmin=0, vmax=1)
+        axs[idx].axis('off')
+        axs[idx].set_title(f"Predicción: {nombres_figuras[prediccion]}\nReal: {nombres_figuras[etiqueta_real]}")
+
     porcentaje_acertacion = (aciertos / num_pruebas) * 100
-    print(f"\nPorcentaje de aciertos: {porcentaje_acertacion:.2f}%")
+
+    # Texto grande debajo de las imágenes con porcentaje de aciertos
+    plt.figtext(0.5, 0.01, f"Porcentaje de aciertos: {porcentaje_acertacion:.2f}%", ha="center", fontsize=16, weight='bold')
+
+    plt.tight_layout(rect=[0, 0.05, 1, 1])
+
     return porcentaje_acertacion
 
 # Generar datos de entrenamiento
@@ -127,6 +142,6 @@ datos_triangulo = [generar_triangulo() for _ in range(num_ejemplos)]
 datos_entrenamiento = datos_circulo + datos_cuadrado + datos_triangulo
 etiquetas_entrenamiento = [0] * num_ejemplos + [1] * num_ejemplos + [2] * num_ejemplos
 
-# Entrenar y probar
+# Entrenar y mostrar resultados
 entrenar(datos_entrenamiento, etiquetas_entrenamiento)
-probar_y_adivinar(num_pruebas=10)
+probar_y_mostrar(num_pruebas=10)
